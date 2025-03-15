@@ -40,6 +40,10 @@ function MovieDetail() {
           <div className="col-md-4 mb-3">
             <img
               src={currentMovie.Poster !== 'N/A' ? currentMovie.Poster : noImage}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).onerror = null;
+                (e.currentTarget as HTMLImageElement).src = noImage;
+              }}
               alt={currentMovie.Title}
               className="img-fluid rounded"
             />

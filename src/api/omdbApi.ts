@@ -19,7 +19,7 @@ export interface OmdbDetailResponse {
   Actors: string;
   Plot: string;
   imdbRating: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Instead of returning "any", define an Error shape if needed

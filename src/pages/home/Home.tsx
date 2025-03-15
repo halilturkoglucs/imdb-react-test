@@ -1,11 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {useAppDispatch, useAppSelector} from '../../app/hooks';
+import React, { useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   fetchMovies,
-  setSearchQuery,
-  setYearFilter,
-  setTypeFilter,
-  setPage,
 } from '../../features/moviesSlice';
 import MovieList from '../../features/MovieList';
 import './Home.scss';
@@ -14,105 +10,119 @@ function Home() {
   const dispatch = useAppDispatch();
   const {
     data: movies,
-    searchQuery,
-    yearFilter,
-    typeFilter,
-    page,
-    totalResults,
     status,
     error,
+    totalResults
   } = useAppSelector((state) => state.movies);
 
-  // Additional local states for validation errors
+  // -----------------------------------
+  // 1) LOCAL STATES FOR ALL PARAMETERS
+  // -----------------------------------
+  // Default search "Pokemon" on first render
+  const [search, setSearch] = useState('Pokemon');
+  const [year, setYear] = useState('');
+  const [type, setType] = useState('');
+  const [page, setPage] = useState(1);
+
+  // Warnings
   const [searchWarning, setSearchWarning] = useState('');
   const [yearWarning, setYearWarning] = useState('');
 
-  // We only want to fetch if searchQuery is non-empty AND year is valid
+  // -----------------------------------
+  // 2) DEBOUNCE USEEFFECT
+  // -----------------------------------
   useEffect(() => {
-    // If initial load (search="Pokemon"), or if user typed valid input:
-    if (!searchQuery) {
-      // If empty, do NOT call fetchMovies. We'll show a warning
-      return;
-    }
-
-    // If year is invalid, do not fetch
-    if (yearWarning) {
-      return;
-    }
-
-    dispatch(
-      fetchMovies({
-        search: searchQuery.trim(),
-        year: yearFilter.trim(),
-        type: typeFilter,
-        page,
-      })
-    );
-  }, [dispatch, searchQuery, yearFilter, typeFilter, page, yearWarning]);
-
-  // Handlers
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    dispatch(setSearchQuery(value));
-
-    // Validation for required
-    if (!value.trim()) {
+    // Basic validation
+    if (!search.trim()) {
       setSearchWarning('Search is required.');
     } else {
       setSearchWarning('');
     }
-    // reset to page 1
-    dispatch(setPage(1));
-  };
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    dispatch(setYearFilter(value));
-    dispatch(setPage(1));
-
-    // Basic validation: allow empty or 4-digit year
-    if (value && !/^\d{4}$/.test(value)) {
+    if (year && !/^\d{4}$/.test(year)) {
       setYearWarning('Please enter a valid 4-digit year or leave blank.');
     } else {
       setYearWarning('');
     }
+
+    // If either warning is present, skip fetch
+    // Also skip if search is empty
+    const canFetch =
+      search.trim() &&
+      !searchWarning &&
+      !yearWarning;
+
+    const timer = setTimeout(() => {
+      if (!canFetch) return;
+
+      // Dispatch the Redux thunk
+      dispatch(
+        fetchMovies({
+          search: search.trim(),
+          year: year.trim(),
+          type,
+          page,
+        })
+      );
+    }, 300); // 300ms debounce
+
+    // Cleanup on unmount or when any dependency changes
+    return () => clearTimeout(timer);
+  }, [search, year, type, page, searchWarning, yearWarning, dispatch]);
+
+  // -----------------------------------
+  // 3) HANDLERS
+  // -----------------------------------
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    // Whenever you change search, reset to page 1
+    setPage(1);
+  };
+
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setYear(e.target.value);
+    setPage(1);
   };
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setTypeFilter(e.target.value));
-    dispatch(setPage(1));
+    setType(e.target.value);
+    setPage(1);
   };
 
   const handlePageChange = (newPage: number) => {
-    dispatch(setPage(newPage));
+    setPage(newPage);
   };
 
+  // -----------------------------------
+  // 4) PAGINATION LOGIC
+  // -----------------------------------
   const PAGE_WINDOW = 9;
-
-  // Calculate total pages
   const totalPages = Math.ceil(totalResults / 10);
 
-  // Compute startPage and endPage
   let startPage = Math.max(1, page - Math.floor(PAGE_WINDOW / 2));
   let endPage = startPage + PAGE_WINDOW - 1;
-
-  // Adjust if endPage exceeds totalPages
   if (endPage > totalPages) {
     endPage = totalPages;
     startPage = Math.max(1, endPage - PAGE_WINDOW + 1);
   }
 
-  // Build the array of visible pages
   const visiblePages: number[] = [];
   for (let i = startPage; i <= endPage; i++) {
     visiblePages.push(i);
   }
 
+  // For convenience in the render
+  const canGoPrev = page > 1;
+  const canGoNext = page < totalPages;
+
+  // -----------------------------------
+  // RENDER
+  // -----------------------------------
   return (
     <div className="home-container container mt-4">
       <h1 className="mb-4">Movie Search</h1>
 
-      {/* Filters: Search, Year, Type */}
+      {/* FILTERS: SEARCH, YEAR, TYPE */}
       <div className="row mb-3">
         {/* Search */}
         <div className="col-md-4 mb-3 mb-md-0">
@@ -120,12 +130,12 @@ function Home() {
           <input
             type="text"
             className="form-control"
-            value={searchQuery}
+            value={search}
             onChange={handleSearchChange}
-            placeholder="e.g. Avengers"
+            placeholder="e.g. Pokemon"
           />
           {searchWarning && (
-            <div className="text-warning mt-1" style={{fontSize: '0.9rem'}}>
+            <div className="text-warning mt-1" style={{ fontSize: '0.9rem' }}>
               {searchWarning}
             </div>
           )}
@@ -137,12 +147,12 @@ function Home() {
           <input
             type="text"
             className="form-control"
-            value={yearFilter}
+            value={year}
             onChange={handleYearChange}
             placeholder="e.g. 2021"
           />
           {yearWarning && (
-            <div className="text-warning mt-1" style={{fontSize: '0.9rem'}}>
+            <div className="text-warning mt-1" style={{ fontSize: '0.9rem' }}>
               {yearWarning}
             </div>
           )}
@@ -153,7 +163,7 @@ function Home() {
           <label className="form-label fw-bold">Type</label>
           <select
             className="form-select"
-            value={typeFilter}
+            value={type}
             onChange={handleTypeChange}
           >
             <option value="">All</option>
@@ -168,14 +178,14 @@ function Home() {
       {status === 'loading' && <p>Loading...</p>}
       {error && <div className="alert alert-danger">Error: {error}</div>}
 
-      {/* Movies Grid */}
-      <MovieList movies={movies}/>
+      {/* MOVIES GRID */}
+      <MovieList movies={movies} />
 
-      {/* Pagination */}
+      {/* PAGINATION */}
       {totalPages > 1 && (
         <div className="d-flex justify-content-center align-items-center mt-4">
-          {/* Prev Button */}
-          {page > 1 && (
+          {/* Prev */}
+          {canGoPrev && (
             <button
               className="btn btn-outline-primary mx-1"
               onClick={() => handlePageChange(page - 1)}
@@ -184,7 +194,7 @@ function Home() {
             </button>
           )}
 
-          {/* Numeric Pages within window */}
+          {/* Numeric Pages */}
           {visiblePages.map((p) => (
             <button
               key={p}
@@ -197,8 +207,8 @@ function Home() {
             </button>
           ))}
 
-          {/* Next Button */}
-          {page < totalPages && (
+          {/* Next */}
+          {canGoNext && (
             <button
               className="btn btn-outline-primary mx-1"
               onClick={() => handlePageChange(page + 1)}

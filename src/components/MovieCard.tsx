@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Movie } from '../features/moviesSlice';
 import noImage from '../assets/no-image.png';
+import './MovieCard.scss'
 
 interface MovieCardProps {
   movie: Movie;
@@ -11,6 +12,10 @@ export default function MovieCard({ movie }: MovieCardProps) {
     <div className="card h-100 movie-card">
       <img
         src={movie.Poster !== 'N/A' ? movie.Poster : noImage}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).onerror = null;
+          (e.currentTarget as HTMLImageElement).src = noImage;
+        }}
         className="card-img-top"
         alt={movie.Title}
       />
