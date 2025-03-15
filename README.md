@@ -1,4 +1,3 @@
-```md
 # Response to the Assignment
 
 This project is a **Single Page Application (SPA)** built with **React**, **TypeScript**, **Vite**, and **Redux Toolkit**. It allows users to **list** and **view details** of movies using the **OMDb API**. Below is a summary of the key features and technical choices.
@@ -114,4 +113,3 @@ Below are some screenshots demonstrating the features (click **Raw** on GitHub i
 ### Conclusion
 
 This project meets the assignment requirements for listing/searching OMDb data, filtering by year and type, providing pagination, and displaying detailed movie info on a dedicated page. We leverage modern tooling (Vite, React, Redux Toolkit) plus TypeScript for a robust dev experience. If you have any questions, refer to the code or contact us for clarification.
-```
