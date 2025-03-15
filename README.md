@@ -77,8 +77,6 @@ Please set your own `VITE_OMDB_API_KEY` in `.env` file
    ```
     - Serves the build locally for final checks.
 
----
-
 ## Testing
 
 We use **Jest** with **ts-jest** for TypeScript-based tests. To run them:
