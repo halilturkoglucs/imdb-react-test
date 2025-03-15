@@ -1,0 +1,12 @@
+@import '../../App.css';
+
+.movie-detail {
+  padding: var(--content-padding);
+  h2 {
+    margin-bottom: 20px;
+  }
+  img {
+    max-width: 100%;
+    border-radius: 5px;
+  }
+}

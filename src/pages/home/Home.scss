@@ -1,0 +1,13 @@
+@import '../../App.css';
+
+.home-container {
+  padding: var(--content-padding);
+  .card {
+    height: 100%;
+  }
+  .filters {
+    label {
+      font-weight: bold;
+    }
+  }
+}
